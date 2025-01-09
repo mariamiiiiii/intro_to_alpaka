@@ -63,8 +63,7 @@ void testVectorAddKernel(Host host, Platform platform, Device device) {
   constexpr float epsilon = 0.000001f;
 
   // buffer size
-  constexpr uint32_t size = 3 * 3;
-  //constexpr uint32_t size = 1024 * 1024;
+  constexpr uint32_t size = 1024 * 1024;
 
   // allocate input and output host buffers in pinned memory accessible by the Platform devices
   auto in1_h = alpaka::allocMappedBuf<float, uint32_t>(host, platform, size);
