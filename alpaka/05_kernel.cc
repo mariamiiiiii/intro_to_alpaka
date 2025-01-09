@@ -46,10 +46,10 @@ struct VectorAddKernel3D {
                                 T const* __restrict__ in2,
                                 T* __restrict__ out,
                                 Vec3D size) const {
-    for (auto ndindex : alpaka::uniformElementsND(acc, size)) {
-      auto index = (ndindex[0] * size[1] + ndindex[1]) * size[2] + ndindex[2];
-      out[index] = in1[index] + in2[index];
-    }
+      for (auto ndindex : alpaka::uniformElementsND(acc, size)) {
+          auto const linearizedIndex = alpaka::mapIdx<1u>(ndindex, size)[0u];
+          out[linearizedIndex] = in1[linearizedIndex] + in2[linearizedIndex];
+      }
   }
 };
 
@@ -63,7 +63,8 @@ void testVectorAddKernel(Host host, Platform platform, Device device) {
   constexpr float epsilon = 0.000001f;
 
   // buffer size
-  constexpr uint32_t size = 1024 * 1024;
+  constexpr uint32_t size = 3 * 3;
+  //constexpr uint32_t size = 1024 * 1024;
 
   // allocate input and output host buffers in pinned memory accessible by the Platform devices
   auto in1_h = alpaka::allocMappedBuf<float, uint32_t>(host, platform, size);
@@ -124,7 +125,7 @@ void testVectorAddKernel(Host host, Platform platform, Device device) {
             << alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(div) << " threads x "
             << alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(div) << " elements...\n";
   alpaka::exec<Acc1D>(
-      queue, div, VectorAddKernel1D{}, in1_d.data(), in2_d.data(), out_d.data(), size);
+    queue, div, VectorAddKernel1D{}, in1_d.data(), in2_d.data(), out_d.data(), size);
 
   // copy the results from the device to the host
   alpaka::memcpy(queue, out_h, out_d);
